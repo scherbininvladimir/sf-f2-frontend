@@ -4,18 +4,34 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link> |
       <router-link to="/quser">Личный кабинет пользователя</router-link> |
-      <router-link to="/qmanager">Управление опросами</router-link>
+      <!-- <router-link to="/qmanager"></router-link> | -->
+      <a href="http://127.0.0.1:8000/admin">Управление опросами</a> |
+      <a href="" v-on:click="logout">Выйти</a>
     </div>
     <router-view/>
   </div>
 </template>
+
+<script>
+export default {
+  methods: {
+    logout() {
+      this.$cookies.remove('jwt_token');
+      this.$router.push({ path: '/' });
+    },
+    test() {
+      this.$router.push({ path: '/' });
+    },
+  },
+};
+</script>
 
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+  /* text-align: center; */
   color: #2c3e50;
 }
 
