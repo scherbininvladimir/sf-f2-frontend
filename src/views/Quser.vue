@@ -7,15 +7,19 @@
          <th>Название</th>
          <th>Дата начала опроса</th>
          <th>Дата окончания опроса</th>
+         <th>Статус</th>
+         <th></th>
          <th></th>
        </tr>
        <tr v-for="(questionnaire, id) in OpenQuestionnaires" :key="id">
          <td>{{ questionnaire.title }}</td>
          <td>{{ questionnaire.start_date }}</td>
          <td>{{ questionnaire.end_date }}</td>
-         <td>{{ questionnaire.isActive }}</td>
-         <td>{{ questionnaire.isDone }}</td>
-         <td><a :href="questionnaire.link">Начать</a></td>
+         <td>
+           Отвечено на {{ questionnaire.stat.questionsWithAnswers }}
+           вопросов из {{ questionnaire.stat.questionsInQestionnaire }}
+         </td>
+         <td v-if="questionnaire.link"><a :href="questionnaire.link">Перейти к вопросам</a></td>
        </tr>
      </table>
     <h2>Завершенные опросники</h2>
@@ -24,14 +28,18 @@
          <th>Название</th>
          <th>Дата начала опроса</th>
          <th>Дата окончания опроса</th>
+         <th>Статус</th>
        </tr>
-       <tr v-for="(questionnair, id) in ClosedQuestionnaires" :key="id">
-         <td>{{ questionnair.title }}</td>
-         <td>{{ questionnair.start_date }}</td>
-         <td>{{ questionnair.end_date }}</td>
+       <tr v-for="(questionnaire, id) in ClosedQuestionnaires" :key="id">
+         <td>{{ questionnaire.title }}</td>
+         <td>{{ questionnaire.start_date }}</td>
+         <td>{{ questionnaire.end_date }}</td>
+        <td>
+           Отвечено на {{ questionnaire.stat.questionsWithAnswers }}
+           вопросов из {{ questionnaire.stat.questionsInQestionnaire }}
+         </td>
        </tr>
      </table>
-
   </div>
 </template>
 
@@ -42,7 +50,16 @@ const BASE_API_URL = 'http://localhost:8080/api/';
 
 export default {
   name: 'Quser',
-  components: {
+  mounted() {
+    this.getData();
+  },
+  data() {
+    return {
+      questionnaireList: [],
+      OpenQuestionnaires: [],
+      ClosedQuestionnaires: [],
+      user: JSON.parse(localStorage.user),
+    };
   },
   methods: {
     getData() {
@@ -53,56 +70,49 @@ export default {
         },
       };
       axios.get(`${BASE_API_URL}questionnaires/`, config).then((response) => {
-        this.OpenQuestionnaires = response.data.filter((questionnaire) => {
-          const UserInTargetUsers = questionnaire.target_users.find((el) => {
-            if (el === parseInt(this.user.id, 10)) {
-              return el;
-            }
-            return false;
-          });
-          if (
-            UserInTargetUsers
-            && (Date.now() <= (Date.parse(questionnaire.end_date) + 1000 * 60 * 60 * 24))
-          ) {
-            return true;
-          }
-          return false;
-        }).map((questionnaire) => {
+        this.questionnaireList = response.data.map((questionnaire) => {
           const q = questionnaire;
-          if (Date.parse(q.start_date) < Date.now()) {
-            q.link = `/questionnaire/${q.id}`;
-          } else {
-            q.link = false;
+          q.isOpen = false;
+          if ((Date.now() <= (Date.parse(questionnaire.end_date) + 1000 * 60 * 60 * 24))) {
+            q.isOpen = true;
           }
-          return q;
-        });
-        this.ClosedQuestionnaires = response.data.filter((questionnaire) => {
-          const UserInTargetUsers = questionnaire.target_users.find((el) => {
-            if (el === parseInt(this.user.id, 10)) {
-              return el;
+          q.stat = {
+            questionsInQestionnaire: q.questions.length,
+            questionsWithAnswers: 0,
+          };
+          axios.get(`${BASE_API_URL}results/${q.id}`, config).then((answersRespnse) => {
+            q.questions.map((questionInQueestionnaire) => {
+              const obj = questionInQueestionnaire;
+              obj.isAnswerred = false;
+              if (answersRespnse.data.filter(
+                (answer) => answer.questionnaire_content === questionInQueestionnaire.id,
+              ).length) obj.isAnswerred = true;
+              return obj;
+            });
+            q.stat.questionsWithAnswers = q.questions.filter((obj) => obj.isAnswerred).length;
+            if (q.isOpen) {
+              if (
+                Date.parse(q.start_date) < Date.now()
+                && (
+                  q.stat.questionsWithAnswers < q.stat.questionsInQestionnaire
+                  || q.allow_answer_modify
+                )
+              ) {
+                q.link = `/questionnaire/${q.id}`;
+              } else {
+                q.link = '';
+              }
             }
-            return false;
+            if (q.isOpen) {
+              this.OpenQuestionnaires.push(q);
+            } else {
+              this.ClosedQuestionnaires.push(q);
+            }
           });
-          if (
-            UserInTargetUsers
-            && Date.parse(questionnaire.end_date) + 1000 * 60 * 60 * 24 < Date.now()
-          ) {
-            return true;
-          }
-          return false;
+          return q;
         });
       });
     },
-  },
-  data() {
-    return {
-      user: JSON.parse(localStorage.user),
-      OpenQuestionnaires: [],
-      ClosedQuestionnaires: [],
-    };
-  },
-  mounted() {
-    this.getData();
   },
 };
 </script>

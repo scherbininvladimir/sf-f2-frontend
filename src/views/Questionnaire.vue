@@ -6,24 +6,22 @@
           <a href="/Quser">Перейти в личный кабинет</a>
         </div>
         <div v-else>
-          <div v-if="this.questionInQuestionnaire.id">
+          <div v-if="showQuestion">
             <p>{{ this.questionInQuestionnaire.question.content }}</p>
-            <ul v-if="isOneAnswer">
-              <li v-for="(item, index) in this.questionInQuestionnaire.question.response_options"
+            <ul v-if="questionInQuestionnaire.question.answers_number === 'O'">
+              <li v-for="(item) in this.questionInQuestionnaire.question.response"
                 v-bind:key="item.id">
-                <input type="radio" :id="index" :value="item.option" v-model="answer">
-                <label :for="index">{{ item.option }}</label>
+                <input type="radio" :id="item.id" :value="item.response_option" v-model="answer">
+                <label :for="item.id">{{ item.response_option }}</label>
               </li>
-
             </ul>
             <ul v-else>
-              <li v-for="(item, index) in this.questionInQuestionnaire.question.response_options"
+              <li v-for="(item) in this.questionInQuestionnaire.question.response"
               v-bind:key="item.id">
-                <input type="checkbox" :id="index" :value="item.option" v-model="answer">
-                <label :for="index">{{ item.option }}</label>
+                <input type="checkbox" :id="item.id" :value="item.response_option" v-model="answer">
+                <label :for="item.id">{{ item.response_option }}</label>
               </li>
             </ul>
-            <p>Answer: {{ answer }}</p>
           </div>
           <button v-if="questionInQuestionnaire.id"
             v-on:click="ButtonClick">Сохранить ответ
@@ -40,6 +38,19 @@ const BASE_API_URL = 'http://localhost:8080/api/';
 
 export default {
   props: ['qid'],
+  data() {
+    return {
+      questionnaire: {},
+      questionInQuestionnaire: {},
+      answer: [],
+      isDone: false,
+      showQuestion: false,
+      user: JSON.parse(localStorage.user),
+    };
+  },
+  mounted() {
+    this.getData();
+  },
   methods: {
     ButtonClick() {
       const jwt = this.$cookies.get('jwt_token');
@@ -48,27 +59,33 @@ export default {
           Authorization: `Bearer ${jwt}`,
         },
       };
-      if (this.questionInQuestionnaire.id) {
-        console.log('Обновляем в базе ответ', this.answer);
-        // Обновить ответ в базе
+      if (this.showQuestion) {
         const requestData = {
           user: this.user.id,
           questionnaire_content: this.questionInQuestionnaire.id,
           answer: this.answer,
         };
+        // TODO отлавливать ошибки и сообщать пользователю, что его ответ не записан
         axios.put(`${BASE_API_URL}result/update/${this.questionInQuestionnaire.id}`, requestData, config);
       }
-      this.questionInQuestionnaire = this.questions.shift();
+      this.questionInQuestionnaire = this.questionnaire.questions.shift();
       this.answer = [];
       if (!this.questionInQuestionnaire) {
         this.isDone = true;
+        this.getData();
       } else {
-        this.isOneAnswer = false;
-        if (this.questionInQuestionnaire.question.question_type === 'O') {
-          this.isOneAnswer = true;
-        }
         axios.get(`${BASE_API_URL}result/get/${this.questionInQuestionnaire.id}`, config).then((response) => {
-          this.answer = response.data.answer;
+          if (
+            this.questionnaire.allow_answer_modify
+              || !(response.data.answer
+              && (response.data.answer.length || !response.data.answer === ''))
+          ) {
+            if (response.data.answer) this.answer = response.data.answer;
+            this.showQuestion = true;
+          } else {
+            this.showQuestion = false;
+            this.ButtonClick();
+          }
         }).catch((error) => {
           if (error.response.status === 404) {
             const requestData = {
@@ -77,6 +94,7 @@ export default {
               answer: this.answer,
             };
             axios.post(`${BASE_API_URL}/result/create/`, requestData, config);
+            this.showQuestion = true;
           }
         });
       }
@@ -90,23 +108,8 @@ export default {
       };
       axios.get(`${BASE_API_URL}questionnaires/${this.qid}`, config).then((response) => {
         this.questionnaire = response.data;
-        this.questions = response.data.questions;
       });
     },
-  },
-  data() {
-    return {
-      questionnaire: {},
-      questions: [],
-      questionInQuestionnaire: {},
-      answer: [],
-      isDone: false,
-      isOneAnswer: false,
-      user: JSON.parse(localStorage.user),
-    };
-  },
-  mounted() {
-    this.getData();
   },
 };
 </script>
