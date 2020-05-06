@@ -40,6 +40,7 @@ export default {
   props: ['qid'],
   data() {
     return {
+      questionnaireContent: [],
       questionnaire: {},
       questionInQuestionnaire: {},
       answer: [],
@@ -66,9 +67,12 @@ export default {
           answer: this.answer,
         };
         // TODO отлавливать ошибки и сообщать пользователю, что его ответ не записан
-        axios.put(`${BASE_API_URL}result/update/${this.questionInQuestionnaire.id}`, requestData, config);
+        axios.put(`${BASE_API_URL}result/update/${this.questionInQuestionnaire.id}`, requestData, config)
+          .catch((error) => {
+            alert(error);
+          });
       }
-      this.questionInQuestionnaire = this.questionnaire.questions.shift();
+      this.questionInQuestionnaire = this.questionnaireContent.shift();
       this.answer = [];
       if (!this.questionInQuestionnaire) {
         this.isDone = true;
@@ -107,13 +111,13 @@ export default {
         },
       };
       axios.get(`${BASE_API_URL}questionnaires/${this.qid}`, config).then((response) => {
-        this.questionnaire = response.data;
+        this.questionnaireContent = response.data;
+        this.questionnaire = response.data.map((element) => element.questionnaire).find(() => true);
       });
     },
   },
 };
 </script>
-
 
 <style>
 li {

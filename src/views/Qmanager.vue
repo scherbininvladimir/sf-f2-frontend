@@ -1,51 +1,22 @@
 <template>
   <div class="Qmanager">
-    <p>Здравствуйте, {{ first_name }}!</p>
-    <h1>Управление опросниками</h1>
-    <h2>Список опросников</h2>
-    <table>
-      <tr>
-        <th>Название</th>
-        <th>Дата начала</th>
-        <th>Дата окончания</th>
-      </tr>
-    </table>
-    <h2>Создание нового опроса</h2>
+    <p>Здравствуйте, {{ user.first_name }}!</p>
+    <Status />
   </div>
 </template>
 
 <script>
-import axios from 'axios';
-
-const BASE_API_URL = 'http://localhost:8080/api/';
+import Status from '@/components/Status.vue';
 
 export default {
   name: 'Qmanager',
   components: {
-  },
-  methods: {
-    getData() {
-      const jwt = this.$cookies.get('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      axios.get(`${BASE_API_URL}questionnaires/`, config).then((response) => {
-        console.log(response);
-      });
-    },
+    Status,
   },
   data() {
     return {
-      first_name: localStorage.first_name,
-      last_name: localStorage.last_name,
-      bla: [],
-      questions: {},
+      user: JSON.parse(localStorage.user),
     };
-  },
-  mounted() {
-    this.getData();
   },
 };
 </script>

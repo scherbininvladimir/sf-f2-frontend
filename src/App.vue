@@ -4,8 +4,8 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link> |
       <router-link to="/quser">Личный кабинет пользователя</router-link> |
-      <!-- <router-link to="/qmanager"></router-link> | -->
-      <a href="http://127.0.0.1:8000/admin">Управление опросами</a> |
+      <router-link to="/qmanager">Управление опросами</router-link> |
+      <a href="http://127.0.0.1:8000/admin">Django admin</a> |
       <a href="" v-on:click="logout">Выйти</a>
     </div>
     <router-view/>
@@ -13,6 +13,7 @@
 </template>
 
 <script>
+
 export default {
   methods: {
     logout() {
