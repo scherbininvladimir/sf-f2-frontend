@@ -16,8 +16,8 @@
          <td>{{ questionnaire.start_date }}</td>
          <td>{{ questionnaire.end_date }}</td>
          <td>
-            {{ questionnaire.number_of_answerred_questions }} /
-            {{ questionnaire.number_of_questions }}
+           {{ questionnaire.number_of_answerred_questions }} /
+           {{ questionnaire.number_of_questions }}
          </td>
          <td v-if="questionnaire.link"><a :href="questionnaire.link">Перейти к вопросам</a></td>
        </tr>
@@ -78,7 +78,7 @@ export default {
         const Questionnaires = response.data.map((questionnaire) => {
           const r = questionnaire;
           r.link = '';
-          if (r.isOpen && (r.allow_answer_modify || r.number_of_questions > r.number_of_answerred_questions)) r.link = `/questionnaire/${r.id}`;
+          if (r.isOpen && (r.allow_answer_modify || r.number_of_questions > r.number_of_answerred_questions) && (r.allow_answer_modify || !r.users_scores.your_score)) r.link = `/questionnaire/${r.id}`;
           return r;
         });
         this.OpenQuestionnaires = Questionnaires.filter((element) => element.isOpen);

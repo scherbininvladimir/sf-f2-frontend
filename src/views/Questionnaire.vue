@@ -2,11 +2,18 @@
     <div>
         <h1>{{ this.questionnaire.title }}</h1>
         <div v-if="isDone">
-          <h2>Ваши ответы сохранены!</h2>
+          <h2>Спасибо за Ваши ответы!</h2>
           <a href="/Quser">Перейти в личный кабинет</a>
         </div>
         <div v-else>
           <div v-if="showQuestion">
+            <p v-if="questionInQuestionnaire.time_to_answer">
+              Время ответа на вопрос: {{ questionTimeLeft }}
+            </p>
+            <p v-if="questionInQuestionnaire.questionnaire.time_to_answer">
+              Время ответа на опросник:
+              {{ questionnaireTimeLeft }}
+            </p>
             <p>{{ this.questionInQuestionnaire.question.content }}</p>
             <ul v-if="questionInQuestionnaire.question.answers_number === 'O'">
               <li v-for="(item) in this.questionInQuestionnaire.question.response"
@@ -22,11 +29,20 @@
                 <label :for="item.id">{{ item.response_option }}</label>
               </li>
             </ul>
+            <button v-on:click="save">
+              Сохранить и перейти к следующему
+            </button>
+            <button v-on:click="next">
+              Не сохранять и перейти к следующему
+            </button>
           </div>
-          <button v-if="questionInQuestionnaire.id"
-            v-on:click="ButtonClick">Сохранить ответ
-          </button>
-          <button v-else v-on:click="ButtonClick">Начать</button>
+          <div v-else>
+            <div v-if="questionInQuestionnaire.id">
+              <p>Время вышло</p>
+              <button v-on:click="next">Продолжить</button>
+            </div>
+            <button v-else v-on:click="start">Начать</button>
+          </div>
         </div>
     </div>
 </template>
@@ -46,6 +62,8 @@ export default {
       answer: [],
       isDone: false,
       showQuestion: false,
+      questionTimeLeft: -1,
+      questionnaireTimeLeft: -1,
       user: JSON.parse(localStorage.user),
     };
   },
@@ -53,55 +71,71 @@ export default {
     this.getData();
   },
   methods: {
-    ButtonClick() {
-      const jwt = this.$cookies.get('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      if (this.showQuestion) {
-        const requestData = {
-          user: this.user.id,
-          questionnaire_content: this.questionInQuestionnaire.id,
-          answer: this.answer,
-        };
-        // TODO отлавливать ошибки и сообщать пользователю, что его ответ не записан
-        axios.put(`${BASE_API_URL}result/update/${this.questionInQuestionnaire.id}`, requestData, config)
-          .catch((error) => {
-            alert(error);
-          });
-      }
+    start() {
+      this.next();
+      this.questionnaireTimeLeft = this.questionnaire.time_to_answer
+        ? this.questionnaire.time_to_answer : -1;
+      this.countDown();
+    },
+    next() {
       this.questionInQuestionnaire = this.questionnaireContent.shift();
       this.answer = [];
-      if (!this.questionInQuestionnaire) {
-        this.isDone = true;
-        this.getData();
-      } else {
+      this.showQuestion = true;
+      if (this.questionInQuestionnaire) {
+        this.questionTimeLeft = this.questionInQuestionnaire.time_to_answer
+          ? this.questionTimeLeft = this.questionInQuestionnaire.time_to_answer : -1;
+        const jwt = this.$cookies.get('jwt_token');
+        const config = {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        };
         axios.get(`${BASE_API_URL}result/get/${this.questionInQuestionnaire.id}`, config).then((response) => {
-          if (
-            this.questionnaire.allow_answer_modify
-              || !(response.data.answer
-              && (response.data.answer.length || !response.data.answer === ''))
-          ) {
+          if (response.data.questionnaire_content) {
             if (response.data.answer) this.answer = response.data.answer;
-            this.showQuestion = true;
           } else {
-            this.showQuestion = false;
-            this.ButtonClick();
-          }
-        }).catch((error) => {
-          if (error.response.status === 404) {
             const requestData = {
               user: this.user.id,
               questionnaire_content: this.questionInQuestionnaire.id,
               answer: this.answer,
             };
             axios.post(`${BASE_API_URL}/result/create/`, requestData, config);
-            this.showQuestion = true;
           }
+          if (!this.questionTimeLeft && !this.questionnaireTimeLeft) this.countDown();
+        }).catch((error) => {
+          alert(`${error.response.status} Ошибка соединения с сервером`);
         });
+      } else {
+        this.isDone = true;
       }
+    },
+    save() {
+      const jwt = this.$cookies.get('jwt_token');
+      const config = {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      };
+      const requestData = {
+        user: this.user.id,
+        questionnaire_content: this.questionInQuestionnaire.id,
+        answer: this.answer,
+      };
+      axios.put(`${BASE_API_URL}result/update/${this.questionInQuestionnaire.id}`, requestData, config)
+        .catch((error) => {
+          let message = '';
+          if (error.response.data.answer) {
+            message = error.response.data.answer;
+          } else {
+            message = 'Ответ не сохранен. Нет соединения с сервером.';
+          }
+          alert(message);
+        });
+      this.next();
+    },
+    timeOut() {
+      this.countDown();
+      this.next();
     },
     getData() {
       const jwt = this.$cookies.get('jwt_token');
@@ -114,6 +148,15 @@ export default {
         this.questionnaireContent = response.data;
         this.questionnaire = response.data.map((element) => element.questionnaire).find(() => true);
       });
+    },
+    countDown() {
+      setTimeout(() => {
+        this.questionTimeLeft -= 1;
+        this.questionnaireTimeLeft -= 1;
+        this.countDown();
+        if (!this.questionTimeLeft) this.showQuestion = false;
+        if (!this.questionnaireTimeLeft) this.isDone = true;
+      }, 1000);
     },
   },
 };

@@ -18,6 +18,7 @@ export default {
   methods: {
     logout() {
       this.$cookies.remove('jwt_token');
+      this.$cookies.remove('jwt_refresh_token');
       this.$router.push({ path: '/' });
     },
     test() {

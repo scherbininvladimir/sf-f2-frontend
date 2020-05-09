@@ -53,6 +53,7 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   const BASE_API_URL = 'http://localhost:8080/api/';
   const jwt = Vue.$cookies.get('jwt_token');
+  const jwtRefresh = Vue.$cookies.get('jwt_refresh_token');
   const publicPages = ['/', '/login', '/register', '/home', '/about'];
   const authRequired = !publicPages.includes(to.path);
 
@@ -61,11 +62,15 @@ router.beforeEach((to, from, next) => {
       // TODO Если пользователь - админ, разрешить вход, если нет отправить логиниться
       next();
     }).catch(() => {
-    // TODO добавить рефреш
-      localStorage.removeItem('user');
-      Vue.$cookies.remove('jwt_refresh_token');
-      Vue.$cookies.remove('jwt_token');
-      next('/login');
+      axios.post(`${BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
+        Vue.$cookies.set('jwt_token', response.data.access);
+        next();
+      }).catch(() => {
+        localStorage.removeItem('user');
+        Vue.$cookies.remove('jwt_refresh_token');
+        Vue.$cookies.remove('jwt_token');
+        next('/login');
+      });
     });
   } else {
     next();
