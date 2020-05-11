@@ -5,6 +5,9 @@ import Home from '../views/Home.vue';
 import Qmanager from '../views/Qmanager.vue';
 import Quser from '../views/Quser.vue';
 import Questionnaire from '../views/Questionnaire.vue';
+import AdminQuestions from '../views/AdminQuestions.vue';
+import AdminQuestionnaires from '../views/AdminQuestionnaires.vue';
+import AdminStatus from '../views/AdminStatus.vue';
 
 Vue.use(VueRouter);
 
@@ -36,6 +39,20 @@ const routes = [
     path: '/qmanager',
     name: 'Qmanager',
     component: Qmanager,
+    children: [
+      {
+        path: 'questions',
+        component: AdminQuestions,
+      },
+      {
+        path: 'questionnaires',
+        component: AdminQuestionnaires,
+      },
+      {
+        path: 'status',
+        component: AdminStatus,
+      },
+    ],
   },
   {
     path: '/questionnaire/:qid',
@@ -60,6 +77,8 @@ router.beforeEach((to, from, next) => {
   if (authRequired) {
     axios.post(`${BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
       // TODO Если пользователь - админ, разрешить вход, если нет отправить логиниться
+      const user = JSON.parse(localStorage.user);
+      if (to.path === '/qmanager' && !user.is_staff) next('/quser');
       next();
     }).catch(() => {
       axios.post(`${BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {

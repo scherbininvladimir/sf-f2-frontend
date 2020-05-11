@@ -44,6 +44,7 @@ export default {
             id: response.data.user_id,
             first_name: response.data.first_name,
             last_name: response.data.last_name,
+            is_staff: response.data.is_staff,
           };
           localStorage.user = JSON.stringify(userData);
           if (response.data.is_staff) {

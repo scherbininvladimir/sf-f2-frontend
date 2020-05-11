@@ -1,6 +1,5 @@
 <template>
   <div class="Quser">
-    <p>Привет, {{ user.first_name }}!</p>
     <h2>Назначенные Вам опросники:</h2>
      <table>
        <tr>
@@ -63,7 +62,6 @@ export default {
       OpenQuestionnaires: [],
       ClosedQuestionnaires: [],
       statusInfo: [],
-      user: JSON.parse(localStorage.user),
     };
   },
   methods: {

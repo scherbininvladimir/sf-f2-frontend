@@ -1,22 +1,28 @@
 <template>
   <div class="Qmanager">
-    <p>Здравствуйте, {{ user.first_name }}!</p>
-    <Status />
+    <ul>
+      <li>
+        <router-link to="/qmanager/questions">Вопросы</router-link> |
+        <router-link to="/qmanager/questionnaires">Опросники</router-link> |
+        <router-link to="/qmanager/status">Отчеты</router-link>
+      </li>
+    </ul>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import Status from '@/components/Status.vue';
-
 export default {
   name: 'Qmanager',
-  components: {
-    Status,
-  },
   data() {
     return {
       user: JSON.parse(localStorage.user),
     };
+  },
+  methods: {
+    SaveQuestion() {
+      console.log('Сохраняю вопрос', this.question);
+    },
   },
 };
 </script>
