@@ -56,7 +56,7 @@ export default {
       this.isEditView = false;
     },
     newQuestion() {
-      this.question = { response: [] };
+      this.question = { answers_number: 'O', question_type: 'T', response: [{ answer_weight: 0 }] };
       this.isEditView = true;
     },
     SaveQuestion() {
@@ -79,9 +79,9 @@ export default {
     },
     addResponse() {
       if (this.question.id) {
-        this.question.response.push({ question: this.question.id });
+        this.question.response.push({ question: this.question.id, answer_weight: 0 });
       } else {
-        this.question.response.push({ question: -1 });
+        this.question.response.push({ answer_weight: 0 });
       }
     },
     deleteResponse(response) {
