@@ -68,7 +68,17 @@ export default {
         },
       };
       if (this.question.id) {
-        axios.put(`${BASE_API_URL}admin/questions/${this.question.id}`, this.question, config).then(() => this.getData()).catch((error) => {
+        axios.put(`${BASE_API_URL}admin/questions/${this.question.id}`, this.question, config).then(() => {
+          this.getData();
+          const formData = new FormData();
+          formData.append('file', this.question.picture_file);
+          axios.put(`${BASE_API_URL}admin/question_image/${this.question.picture_file.name}/${this.question.id}`, formData, {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          }).catch((error) => console.log(error.response.data));
+        }).catch((error) => {
           console.log(error.response.data);
         });
       } else {

@@ -15,6 +15,12 @@
               {{ questionnaireTimeLeft }}
             </p>
             <p>{{ this.questionInQuestionnaire.question.content }}</p>
+            <div v-if="this.questionInQuestionnaire.question.picture">
+              <b-img
+                :src="this.questionInQuestionnaire.question.picture"
+                fluid alt="Картинка">
+              </b-img>
+            </div>
             <ul v-if="questionInQuestionnaire.question.answers_number === 'O'">
               <li v-for="(item) in this.questionInQuestionnaire.question.response"
                 v-bind:key="item.id">

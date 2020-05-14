@@ -76,7 +76,12 @@ export default {
         const Questionnaires = response.data.map((questionnaire) => {
           const r = questionnaire;
           r.link = '';
-          if (r.isOpen && (r.allow_answer_modify || r.number_of_questions > r.number_of_answerred_questions) && (r.allow_answer_modify || !r.users_scores.your_score)) r.link = `/questionnaire/${r.id}`;
+          if (r.isOpen && (r.allow_answer_modify
+          || r.number_of_questions > r.number_of_answerred_questions)
+          && (r.allow_answer_modify || !r.users_scores.your_score)) {
+            r.link = `/questionnaire/${r.id}`;
+          }
+          // r.link = `/questionnaire/${r.id}`;
           return r;
         });
         this.OpenQuestionnaires = Questionnaires.filter((element) => element.isOpen);

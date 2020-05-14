@@ -1,6 +1,6 @@
 <template>
   <div class="Qmanager">
-    <ul>
+    <ul id="nav">
       <li>
         <router-link to="/qmanager/questions">Вопросы</router-link> |
         <router-link to="/qmanager/questionnaires">Опросники</router-link> |

@@ -1,8 +1,7 @@
 <template>
   <div id="app" class="container">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link> |
+      <router-link to="/about">О системе</router-link> |
       <router-link to="/quser">Личный кабинет пользователя</router-link> |
       <span v-if="isStaff">
         <router-link  to="/qmanager">Управление опросами</router-link> |
@@ -49,6 +48,7 @@ export default {
   },
   mounted() {
     this.getData();
+    this.$router.push('Quser');
   },
 };
 </script>

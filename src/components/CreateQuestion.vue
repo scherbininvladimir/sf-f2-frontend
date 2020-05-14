@@ -63,8 +63,16 @@
               value="T">Тест
             </b-form-radio>
           </b-form-group>
-        </b-form-row>
 
+        </b-form-row>
+        <b-form-row>
+
+            <b-form-file
+              v-model="question.picture_file"
+              placeholder="Choose a file or drop it here..."
+              drop-placeholder="Drop file here..."
+            ></b-form-file>
+        </b-form-row>
         <b-form-row
           v-for="a in question.response"
           :key="a.id"

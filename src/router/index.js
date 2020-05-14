@@ -1,4 +1,4 @@
-import axios from 'axios';
+// import axios from 'axios';
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import Home from '../views/Home.vue';
@@ -67,33 +67,32 @@ const router = new VueRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const BASE_API_URL = 'http://localhost:8080/api/';
-  const jwt = Vue.$cookies.get('jwt_token');
-  const jwtRefresh = Vue.$cookies.get('jwt_refresh_token');
-  const publicPages = ['/', '/login', '/register', '/home', '/about'];
-  const authRequired = !publicPages.includes(to.path);
+// router.beforeEach((to, from, next) => {
+//   const BASE_API_URL = 'http://localhost:8080/api/';
+//   const jwt = Vue.$cookies.get('jwt_token');
+//   const jwtRefresh = Vue.$cookies.get('jwt_refresh_token');
+//   const publicPages = ['/', '/login', '/register', '/home', '/about'];
+//   const authRequired = !publicPages.includes(to.path);
 
-  if (authRequired) {
-    axios.post(`${BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
-      // TODO Если пользователь - админ, разрешить вход, если нет отправить логиниться
-      const user = JSON.parse(localStorage.user);
-      if (to.path === '/qmanager' && !user.is_staff) next('/quser');
-      next();
-    }).catch(() => {
-      axios.post(`${BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
-        Vue.$cookies.set('jwt_token', response.data.access);
-        next();
-      }).catch(() => {
-        localStorage.removeItem('user');
-        Vue.$cookies.remove('jwt_refresh_token');
-        Vue.$cookies.remove('jwt_token');
-        next('/login');
-      });
-    });
-  } else {
-    next();
-  }
-});
+//   if (authRequired) {
+//     axios.post(`${BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
+//       // const user = JSON.parse(localStorage.user);
+//       // if (to.path === '/qmanager' && !user.is_staff) next('/quser');
+//       next();
+//     }).catch(() => {
+//       axios.post(`${BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
+//         Vue.$cookies.set('jwt_token', response.data.access);
+//         next();
+//       }).catch(() => {
+//         localStorage.removeItem('user');
+//         Vue.$cookies.remove('jwt_refresh_token');
+//         Vue.$cookies.remove('jwt_token');
+//         next('/login');
+//       });
+//     });
+//   } else {
+//     next();
+//   }
+// });
 
 export default router;
