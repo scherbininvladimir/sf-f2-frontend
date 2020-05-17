@@ -14,9 +14,6 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/Home.vue'),
   },
   {
@@ -62,28 +59,22 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  // const jwt = Vue.$cookies.get('jwt_token');
-  // const jwtRefresh = Vue.$cookies.get('jwt_refresh_token');
   const jwt = localStorage.getItem('jwt_token');
   const jwtRefresh = localStorage.getItem('jwt_refresh_token');
   const publicPages = ['/', '/login', '/register', '/home', '/about'];
   const authRequired = !publicPages.includes(to.path);
 
   if (authRequired) {
-    axios.post(`${this.$BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
-      // const user = JSON.parse(localStorage.user);
-      // if (to.path === '/qmanager' && !user.is_staff) next('/quser');
+    axios.post(`${router.app.$BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
       next();
     }).catch(() => {
-      axios.post(`${this.$BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
+      axios.post(`${router.$BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
         Vue.$cookies.set('jwt_token', response.data.access);
         next();
       }).catch(() => {
         localStorage.removeItem('user');
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('jwt_refresh_token');
-        // Vue.$cookies.remove('jwt_refresh_token');
-        // Vue.$cookies.remove('jwt_token');
         next('/login');
       });
     });
