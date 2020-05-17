@@ -62,7 +62,6 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const BASE_API_URL = 'http://localhost:8080/api/';
   // const jwt = Vue.$cookies.get('jwt_token');
   // const jwtRefresh = Vue.$cookies.get('jwt_refresh_token');
   const jwt = localStorage.getItem('jwt_token');
@@ -71,12 +70,12 @@ router.beforeEach((to, from, next) => {
   const authRequired = !publicPages.includes(to.path);
 
   if (authRequired) {
-    axios.post(`${BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
+    axios.post(`${this.$BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
       // const user = JSON.parse(localStorage.user);
       // if (to.path === '/qmanager' && !user.is_staff) next('/quser');
       next();
     }).catch(() => {
-      axios.post(`${BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
+      axios.post(`${this.$BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
         Vue.$cookies.set('jwt_token', response.data.access);
         next();
       }).catch(() => {
