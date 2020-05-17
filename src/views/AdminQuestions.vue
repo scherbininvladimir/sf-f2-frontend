@@ -12,7 +12,7 @@
     <div v-else>
         <li v-for="q in questions" :key="q.id">
           <b-button variant="link" v-on:click="edit(q.id)">{{ q.title }}</b-button>
-          <b-button size="sm" variant="danger" v-on:click="deleteQuestion(q.id)">x</b-button>
+          <a v-on:click="deleteQuestion(q.id)" class="deleteButton" href="#">&#x2718;</a>
         </li>
       <b-button variant="primary" v-on:click="newQuestion">Новый вопрос</b-button>
     </div>
@@ -21,8 +21,6 @@
 <script>
 import CreateQuestion from '@/components/CreateQuestion.vue';
 import axios from 'axios';
-
-const BASE_API_URL = 'http://localhost:8080/api/';
 
 export default {
   components: {
@@ -37,13 +35,13 @@ export default {
   },
   methods: {
     getData() {
-      const jwt = this.$cookies.get('jwt_token');
+      const jwt = localStorage.getItem('jwt_token');
       const config = {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
       };
-      axios.get(`${BASE_API_URL}admin/questions/`, config).then((response) => {
+      axios.get(`${this.$BASE_API_URL}admin/questions/`, config).then((response) => {
         this.questions = response.data;
       });
     },
@@ -61,28 +59,28 @@ export default {
     },
     SaveQuestion() {
       this.isEditView = false;
-      const jwt = this.$cookies.get('jwt_token');
+      const jwt = localStorage.getItem('jwt_token');
       const config = {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
       };
       if (this.question.id) {
-        axios.put(`${BASE_API_URL}admin/questions/${this.question.id}`, this.question, config).then(() => {
-          this.getData();
+        axios.put(`${this.$BASE_API_URL}admin/questions/${this.question.id}`, this.question, config).then(() => {
           const formData = new FormData();
           formData.append('file', this.question.picture_file);
-          axios.put(`${BASE_API_URL}admin/question_image/${this.question.picture_file.name}/${this.question.id}`, formData, {
+          axios.put(`${this.$BASE_API_URL}admin/question_image/${this.question.picture_file.name}/${this.question.id}`, formData, {
             headers: {
               Authorization: `Bearer ${jwt}`,
               'Content-Type': 'multipart/form-data',
             },
-          }).catch((error) => console.log(error.response.data));
+          }).then(() => this.getData()).catch((error) => console.log(error.response.data));
+          this.getData();
         }).catch((error) => {
           console.log(error.response.data);
         });
       } else {
-        axios.post(`${BASE_API_URL}admin/questions/`, this.question, config).then(() => this.getData()).catch((error) => {
+        axios.post(`${this.$BASE_API_URL}admin/questions/`, this.question, config).then(() => this.getData()).catch((error) => {
           console.log(error.response.data);
         });
       }
@@ -98,13 +96,13 @@ export default {
       this.question.response = this.question.response.filter((element) => !(element === response));
     },
     deleteQuestion(qid) {
-      const jwt = this.$cookies.get('jwt_token');
+      const jwt = localStorage.getItem('jwt_token');
       const config = {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
       };
-      axios.delete(`${BASE_API_URL}admin/questions/${qid}`, config).then(() => this.getData()).catch((error) => {
+      axios.delete(`${this.$BASE_API_URL}admin/questions/${qid}`, config).then(() => this.getData()).catch((error) => {
         console.log(error.response.data);
       });
     },

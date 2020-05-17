@@ -56,8 +56,6 @@
 <script>
 import axios from 'axios';
 
-const BASE_API_URL = 'http://localhost:8080/api/';
-
 export default {
   props: ['qid'],
   data() {
@@ -90,13 +88,13 @@ export default {
       if (this.questionInQuestionnaire) {
         this.questionTimeLeft = this.questionInQuestionnaire.time_to_answer
           ? this.questionTimeLeft = this.questionInQuestionnaire.time_to_answer : -1;
-        const jwt = this.$cookies.get('jwt_token');
+        const jwt = localStorage.getItem('jwt_token');
         const config = {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
         };
-        axios.get(`${BASE_API_URL}result/get/${this.questionInQuestionnaire.id}`, config).then((response) => {
+        axios.get(`${this.$BASE_API_URL}result/get/${this.questionInQuestionnaire.id}`, config).then((response) => {
           if (response.data.questionnaire_content) {
             if (response.data.answer) this.answer = response.data.answer;
           } else {
@@ -105,7 +103,7 @@ export default {
               questionnaire_content: this.questionInQuestionnaire.id,
               answer: this.answer,
             };
-            axios.post(`${BASE_API_URL}/result/create/`, requestData, config);
+            axios.post(`${this.$BASE_API_URL}/result/create/`, requestData, config);
           }
           if (!this.questionTimeLeft && !this.questionnaireTimeLeft) this.countDown();
         }).catch((error) => {
@@ -116,7 +114,7 @@ export default {
       }
     },
     save() {
-      const jwt = this.$cookies.get('jwt_token');
+      const jwt = localStorage.getItem('jwt_token');
       const config = {
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -127,7 +125,7 @@ export default {
         questionnaire_content: this.questionInQuestionnaire.id,
         answer: this.answer,
       };
-      axios.put(`${BASE_API_URL}result/update/${this.questionInQuestionnaire.id}`, requestData, config)
+      axios.put(`${this.$BASE_API_URL}result/update/${this.questionInQuestionnaire.id}`, requestData, config)
         .catch((error) => {
           let message = '';
           if (error.response.data.answer) {
@@ -144,13 +142,13 @@ export default {
       this.next();
     },
     getData() {
-      const jwt = this.$cookies.get('jwt_token');
+      const jwt = localStorage.getItem('jwt_token');
       const config = {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
       };
-      axios.get(`${BASE_API_URL}questionnaires/${this.qid}`, config).then((response) => {
+      axios.get(`${this.$BASE_API_URL}questionnaires/${this.qid}`, config).then((response) => {
         this.questionnaireContent = response.data;
         this.questionnaire = response.data.map((element) => element.questionnaire).find(() => true);
       });

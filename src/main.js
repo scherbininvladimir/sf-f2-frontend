@@ -10,6 +10,8 @@ import store from './store';
 Vue.use(VueCookies);
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
+// Vue.prototype.$BASE_API_URL = 'http://localhost:8080/api/';
+Vue.prototype.$BASE_API_URL = 'http://95.165.133.240/api/';
 
 new Vue({
   router,

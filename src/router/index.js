@@ -1,7 +1,6 @@
-// import axios from 'axios';
+import axios from 'axios';
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import Home from '../views/Home.vue';
 import Qmanager from '../views/Qmanager.vue';
 import Quser from '../views/Quser.vue';
 import Questionnaire from '../views/Questionnaire.vue';
@@ -15,15 +14,10 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home,
-  },
-  {
-    path: '/about',
-    name: 'About',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
+    component: () => import(/* webpackChunkName: "about" */ '../views/Home.vue'),
   },
   {
     path: '/quser',
@@ -49,7 +43,7 @@ const routes = [
         component: AdminQuestionnaires,
       },
       {
-        path: 'status',
+        path: '',
         component: AdminStatus,
       },
     ],
@@ -67,32 +61,36 @@ const router = new VueRouter({
   routes,
 });
 
-// router.beforeEach((to, from, next) => {
-//   const BASE_API_URL = 'http://localhost:8080/api/';
-//   const jwt = Vue.$cookies.get('jwt_token');
-//   const jwtRefresh = Vue.$cookies.get('jwt_refresh_token');
-//   const publicPages = ['/', '/login', '/register', '/home', '/about'];
-//   const authRequired = !publicPages.includes(to.path);
+router.beforeEach((to, from, next) => {
+  const BASE_API_URL = 'http://localhost:8080/api/';
+  // const jwt = Vue.$cookies.get('jwt_token');
+  // const jwtRefresh = Vue.$cookies.get('jwt_refresh_token');
+  const jwt = localStorage.getItem('jwt_token');
+  const jwtRefresh = localStorage.getItem('jwt_refresh_token');
+  const publicPages = ['/', '/login', '/register', '/home', '/about'];
+  const authRequired = !publicPages.includes(to.path);
 
-//   if (authRequired) {
-//     axios.post(`${BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
-//       // const user = JSON.parse(localStorage.user);
-//       // if (to.path === '/qmanager' && !user.is_staff) next('/quser');
-//       next();
-//     }).catch(() => {
-//       axios.post(`${BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
-//         Vue.$cookies.set('jwt_token', response.data.access);
-//         next();
-//       }).catch(() => {
-//         localStorage.removeItem('user');
-//         Vue.$cookies.remove('jwt_refresh_token');
-//         Vue.$cookies.remove('jwt_token');
-//         next('/login');
-//       });
-//     });
-//   } else {
-//     next();
-//   }
-// });
+  if (authRequired) {
+    axios.post(`${BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
+      // const user = JSON.parse(localStorage.user);
+      // if (to.path === '/qmanager' && !user.is_staff) next('/quser');
+      next();
+    }).catch(() => {
+      axios.post(`${BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
+        Vue.$cookies.set('jwt_token', response.data.access);
+        next();
+      }).catch(() => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('jwt_refresh_token');
+        // Vue.$cookies.remove('jwt_refresh_token');
+        // Vue.$cookies.remove('jwt_token');
+        next('/login');
+      });
+    });
+  } else {
+    next();
+  }
+});
 
 export default router;

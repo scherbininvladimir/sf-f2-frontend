@@ -39,7 +39,19 @@
           </b-form-group>
 
         </b-form-row>
+        <b-form-row>
 
+          <b-form-group label="Сотрудники, которым назначен опросник">
+            <b-form-select
+              v-model="questionnaire.target_users"
+              :options="selectUserOptions"
+              multiple
+              :select-size="10"
+            >
+            </b-form-select>
+          </b-form-group>
+
+        </b-form-row>
         <b-form-row>
 
           <b-form-group label="Описание" class="col-12">
@@ -138,24 +150,16 @@
 
       </b-form>
 
-
-      <b-card class="mt-3" header="Form Data Result">
-        <pre class="m-0">{{ questionnaire }}</pre>
-      </b-card>
     </div>
 </template>
 
 <script>
 export default {
-  props: ['questionnaire', 'questions'],
+  props: ['questionnaire', 'questions', 'users'],
   data() {
     return {
-      form: {
-        tilte: '',
-        content: '',
-        answers_number: '',
-      },
       selectQuestionOptions: [],
+      selectUserOptions: [],
     };
   },
   methods: {
@@ -170,14 +174,23 @@ export default {
     getData() {
       this.selectQuestionOptions = this.questions.map(
         (element) => {
-          const options = {
+          const option = {
             value: {
               id: element.id,
               title: element.title,
             },
             text: element.title,
           };
-          return options;
+          return option;
+        },
+      );
+      this.selectUserOptions = this.users.map(
+        (element) => {
+          const option = {
+            value: element.id,
+            text: `${element.first_name} ${element.last_name}`,
+          };
+          return option;
         },
       );
     },

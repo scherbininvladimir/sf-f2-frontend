@@ -63,8 +63,6 @@
 <script>
 import axios from 'axios';
 
-const BASE_API_URL = 'http://localhost:8080/api/';
-
 export default {
   name: 'Status',
   data() {
@@ -88,13 +86,13 @@ export default {
         this.isDetail = false;
       } else {
         this.isDetail = true;
-        const jwt = this.$cookies.get('jwt_token');
+        const jwt = localStorage.getItem('jwt_token');
         const config = {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
         };
-        axios.get(`${BASE_API_URL}admin/stat/${uid}/${qid}`, config).then((response) => {
+        axios.get(`${this.$BASE_API_URL}admin/stat/${uid}/${qid}`, config).then((response) => {
           this.detailStatus.results = response.data;
           this.detailStatus.user_last_name = response.data.find(
             (element) => element.user.last_name,
@@ -106,7 +104,7 @@ export default {
       }
     },
     getData() {
-      const jwt = this.$cookies.get('jwt_token');
+      const jwt = localStorage.getItem('jwt_token');
       const config = {
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -115,7 +113,7 @@ export default {
       // axios.get(`${BASE_API_URL}admin/results/`, config).then((response) => {
       //   this.results = response.data;
       // });
-      axios.get(`${BASE_API_URL}admin/stat/`, config).then((response) => {
+      axios.get(`${this.$BASE_API_URL}admin/stat/`, config).then((response) => {
         this.status = response.data;
       });
     },

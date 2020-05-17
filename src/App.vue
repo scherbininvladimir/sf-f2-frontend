@@ -1,16 +1,16 @@
 <template>
   <div id="app" class="container">
     <div id="nav">
-      <router-link to="/about">О системе</router-link> |
+      <router-link to="/">Главная</router-link> |
       <router-link to="/quser">Личный кабинет пользователя</router-link> |
       <span v-if="isStaff">
         <router-link  to="/qmanager">Управление опросами</router-link> |
       </span>
-      <a href="http://127.0.0.1:8000/admin">Django admin</a>
       <span v-if="isLogin">
-        Здравствуйте, {{ first_name }}! <a href="" v-on:click="logout">Выход</a>
+        <a href="" v-on:click="logout">Выход</a>
       </span>
     </div>
+    <p v-if="isLogin">Здравствуйте, {{ first_name }}!</p>
     <router-view/>
   </div>
 </template>
@@ -39,16 +39,15 @@ export default {
       }
     },
     logout() {
-      this.$cookies.remove('jwt_token');
-      this.$cookies.remove('jwt_refresh_token');
-      this.$router.push({ path: '/' });
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('jwt_refresh_token');
       localStorage.removeItem('user');
+      this.$router.push({ path: '/' });
       this.getData();
     },
   },
   mounted() {
     this.getData();
-    this.$router.push('Quser');
   },
 };
 </script>
@@ -73,5 +72,24 @@ export default {
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+a.router-link-exact-active {
+  color: #42b983;
+}
+
+.deleteButton {
+  color: red;
+  text-decoration: none;
+}
+
+.deleteButton:hover {
+  text-decoration: none;
+  color: red;
 }
 </style>

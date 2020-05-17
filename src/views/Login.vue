@@ -16,8 +16,6 @@
 <script>
 import axios from 'axios';
 
-const AUTH_URL = 'http://localhost:8080/api/token/';
-
 export default {
   data() {
     return {
@@ -36,10 +34,10 @@ export default {
           'X-CSRFToken': this.$cookies.get('csrftoken'),
         },
       };
-      axios.post(AUTH_URL, requestData, config)
+      axios.post(`${this.$BASE_API_URL}token/`, requestData, config)
         .then((response) => {
-          this.$cookies.set('jwt_token', response.data.access);
-          this.$cookies.set('jwt_refresh_token', response.data.refresh);
+          localStorage.setItem('jwt_token', response.data.access);
+          localStorage.setItem('jwt_refresh_token', response.data.refresh);
           const userData = {
             id: response.data.user_id,
             first_name: response.data.first_name,

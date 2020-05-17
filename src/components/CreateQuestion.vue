@@ -67,11 +67,19 @@
         </b-form-row>
         <b-form-row>
 
+          <b-form-group label="Картинка">
+
+            <div v-if="question.picture">
+              <b-img :src="question.picture" fluid alt="Картинка"></b-img>
+            </div>
+
             <b-form-file
               v-model="question.picture_file"
               placeholder="Choose a file or drop it here..."
               drop-placeholder="Drop file here..."
             ></b-form-file>
+          </b-form-group>
+
         </b-form-row>
         <b-form-row
           v-for="a in question.response"
@@ -91,7 +99,7 @@
 
             <b-form-checkbox
               v-if="question.question_type === 'T'"
-              :id="'input-5-' + a.id"
+
               v-model="a.isCorrect"
 
             >
@@ -137,28 +145,12 @@
 
       </b-form>
 
-
-    <b-card class="mt-3" header="Form Data Result">
-      <pre class="m-0">{{ question }}</pre>
-    </b-card>
     </div>
 </template>
 
 <script>
 export default {
   props: ['question'],
-  data() {
-    return {
-      form: {
-        tilte: '',
-        content: '',
-        answers_number: '',
-        food: null,
-        checked: [],
-      },
-      foods: [{ text: 'Select One', value: null }, 'Carrots', 'Beans', 'Tomatoes', 'Corn'],
-    };
-  },
   methods: {
     onSubmit(evt) {
       evt.preventDefault();

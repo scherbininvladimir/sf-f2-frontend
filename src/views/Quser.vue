@@ -50,8 +50,6 @@
 <script>
 import axios from 'axios';
 
-const BASE_API_URL = 'http://localhost:8080/api/';
-
 export default {
   name: 'Quser',
   mounted() {
@@ -66,13 +64,13 @@ export default {
   },
   methods: {
     getData() {
-      const jwt = this.$cookies.get('jwt_token');
+      const jwt = localStorage.getItem('jwt_token');
       const config = {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
       };
-      axios.get(`${BASE_API_URL}questionnaires/`, config).then((response) => {
+      axios.get(`${this.$BASE_API_URL}questionnaires/`, config).then((response) => {
         const Questionnaires = response.data.map((questionnaire) => {
           const r = questionnaire;
           r.link = '';
