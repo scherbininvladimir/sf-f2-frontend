@@ -1,13 +1,12 @@
 <template>
   <div class="Quser">
     <h2>Назначенные Вам опросники:</h2>
-     <table>
+     <table class="table table-bordered table-sm">
        <tr>
          <th>Название</th>
          <th>Дата начала опроса</th>
          <th>Дата окончания опроса</th>
          <th>Статус (отвечено/всего вопросов)</th>
-         <th></th>
          <th></th>
        </tr>
        <tr v-for="(questionnaire, id) in OpenQuestionnaires" :key="id">
@@ -22,7 +21,7 @@
        </tr>
      </table>
     <h2>Завершенные опросники</h2>
-         <table>
+      <table class="table table-bordered table-sm">
        <tr>
          <th>Название</th>
          <th>Дата начала опроса</th>
@@ -74,12 +73,12 @@ export default {
         const Questionnaires = response.data.map((questionnaire) => {
           const r = questionnaire;
           r.link = '';
-          if (r.isOpen && (r.allow_answer_modify
+          if (r.isOpen
+          && (r.allow_answer_modify
           || r.number_of_questions > r.number_of_answerred_questions)
           && (r.allow_answer_modify || !r.users_scores.your_score)) {
             r.link = `/questionnaire/${r.id}`;
           }
-          // r.link = `/questionnaire/${r.id}`;
           return r;
         });
         this.OpenQuestionnaires = Questionnaires.filter((element) => element.isOpen);

@@ -103,7 +103,7 @@ export default {
               questionnaire_content: this.questionInQuestionnaire.id,
               answer: this.answer,
             };
-            axios.post(`${this.$BASE_API_URL}/result/create/`, requestData, config);
+            axios.post(`${this.$BASE_API_URL}result/create/`, requestData, config);
           }
           if (!this.questionTimeLeft && !this.questionnaireTimeLeft) this.countDown();
         }).catch((error) => {
