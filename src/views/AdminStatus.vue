@@ -2,7 +2,7 @@
   <div>
     <div v-if="!isDetail">
       <h2>Общая информация</h2>
-      <table>
+      <table class="table table-bordered table-sm">
         <tr>
           <th>Название опросника</th>
           <th>Начало сбора данных</th>
@@ -18,12 +18,9 @@
               <li
                 v-for="user in r.users_scores.detail_stat"
                 :key="user.id">
-                <p>
-                  {{ user.last_name }}&nbsp;&mdash;&nbsp;{{ user.scores }}
-                  <button v-on:click="togleView(user.user_id, r.id)">
-                    Посмотреть ответы
-                  </button>
-                </p>
+                  <b-button variant="link" v-on:click="togleView(user.user_id, r.id)">
+                    {{ user.last_name }}&nbsp;({{ user.scores }})
+                  </b-button>
               </li>
             </ul>
           </td>
@@ -36,7 +33,7 @@
       </button>
       <h2>Опросник: {{detailStatus.q_title}}</h2>
       <h2>Сотрудник: {{detailStatus.user_last_name}}</h2>
-      <table>
+      <table class="table table-bordered table-sm">
         <th>Вопрос</th>
         <th>Варианты ответа</th>
         <th>Ответ пользователя</th>
@@ -47,7 +44,17 @@
           <td>
             <ul>
               <li v-for="q in r.questionnaire_content.question.response" :key="q.id">
-                {{ q.response_option }} ({{q.answer_weight}} isCorrect: {{q.isCorrect}})
+                {{ q.response_option }}
+                <span
+                  v-if="r.questionnaire_content.question.question_type == 'T' && q.isCorrect"
+                >
+                  &#x2713;
+                </span>
+                <span
+                  v-if="r.questionnaire_content.question.question_type == 'Q'"
+                >
+                  ({{q.answer_weight}})
+                </span>
               </li>
             </ul>
           </td>
@@ -110,9 +117,6 @@ export default {
           Authorization: `Bearer ${jwt}`,
         },
       };
-      // axios.get(`${BASE_API_URL}admin/results/`, config).then((response) => {
-      //   this.results = response.data;
-      // });
       axios.get(`${this.$BASE_API_URL}admin/stat/`, config).then((response) => {
         this.status = response.data;
       });
