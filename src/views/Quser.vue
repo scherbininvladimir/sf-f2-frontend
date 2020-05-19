@@ -1,5 +1,8 @@
 <template>
   <div class="Quser">
+    <b-alert v-model="showErrorAlert" variant="danger" dismissible>
+      {{ Message }}
+    </b-alert>
     <h2>Назначенные Вам опросники:</h2>
      <table class="table table-bordered table-sm">
        <tr>
@@ -56,6 +59,8 @@ export default {
   },
   data() {
     return {
+      showErrorAlert: false,
+      Message: '',
       OpenQuestionnaires: [],
       ClosedQuestionnaires: [],
       statusInfo: [],
@@ -64,12 +69,9 @@ export default {
   methods: {
     getData() {
       const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      axios.get(`${this.$BASE_API_URL}questionnaires/`, config).then((response) => {
+      axios.defaults.baseURL = this.$BASE_API_URL;
+      axios.defaults.headers.common.Authorization = `Bearer ${jwt}`;
+      axios.get('questionnaires/').then((response) => {
         const Questionnaires = response.data.map((questionnaire) => {
           const r = questionnaire;
           r.link = '';
@@ -83,6 +85,9 @@ export default {
         });
         this.OpenQuestionnaires = Questionnaires.filter((element) => element.isOpen);
         this.ClosedQuestionnaires = Questionnaires.filter((element) => !element.isOpen);
+      }).catch((error) => {
+        this.Message = error.response.data;
+        this.showErrorAlert = true;
       });
     },
   },

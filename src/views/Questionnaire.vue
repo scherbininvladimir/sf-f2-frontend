@@ -1,5 +1,8 @@
   <template>
     <div>
+      <b-alert v-model="showErrorAlert" variant="danger" dismissible>
+        {{ Message }}
+      </b-alert>
         <h1>{{ this.questionnaire.title }}</h1>
         <div v-if="isDone">
           <h2>Спасибо за Ваши ответы!</h2>
@@ -60,6 +63,8 @@ export default {
   props: ['qid'],
   data() {
     return {
+      showErrorAlert: false,
+      Message: '',
       questionnaireContent: [],
       questionnaire: {},
       questionInQuestionnaire: {},
@@ -72,6 +77,9 @@ export default {
     };
   },
   mounted() {
+    const jwt = localStorage.getItem('jwt_token');
+    axios.defaults.baseURL = this.$BASE_API_URL;
+    axios.defaults.headers.common.Authorization = `Bearer ${jwt}`;
     this.getData();
   },
   methods: {
@@ -88,13 +96,7 @@ export default {
       if (this.questionInQuestionnaire) {
         this.questionTimeLeft = this.questionInQuestionnaire.time_to_answer
           ? this.questionTimeLeft = this.questionInQuestionnaire.time_to_answer : -1;
-        const jwt = localStorage.getItem('jwt_token');
-        const config = {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        };
-        axios.get(`${this.$BASE_API_URL}result/get/${this.questionInQuestionnaire.id}`, config).then((response) => {
+        axios.get(`result/get/${this.questionInQuestionnaire.id}`).then((response) => {
           if (response.data.questionnaire_content) {
             if (response.data.answer) this.answer = response.data.answer;
           } else {
@@ -103,37 +105,32 @@ export default {
               questionnaire_content: this.questionInQuestionnaire.id,
               answer: this.answer,
             };
-            axios.post(`${this.$BASE_API_URL}result/create/`, requestData, config);
+            axios.post('result/create/', requestData);
           }
           if (!this.questionTimeLeft && !this.questionnaireTimeLeft) this.countDown();
         }).catch((error) => {
-          alert(`${error.response.status} Ошибка соединения с сервером`);
+          this.showErrorAlert = true;
+          this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
         });
       } else {
         this.isDone = true;
       }
     },
     save() {
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
       const requestData = {
         user: this.user.id,
         questionnaire_content: this.questionInQuestionnaire.id,
         answer: this.answer,
       };
-      axios.put(`${this.$BASE_API_URL}result/update/${this.questionInQuestionnaire.id}`, requestData, config)
+      axios.put(`result/update/${this.questionInQuestionnaire.id}`, requestData)
         .catch((error) => {
-          let message = '';
           if (error.response.data.answer) {
-            message = error.response.data.answer;
+            this.showErrorAlert = true;
+            this.Message = `${error.response.data.answer}`;
           } else {
-            message = 'Ответ не сохранен. Нет соединения с сервером.';
+            this.showErrorAlert = true;
+            this.Message = `Ответ не сохранен. Нет соединения с сервером: ${error.response.data.answer}`;
           }
-          alert(message);
         });
       this.next();
     },
@@ -142,13 +139,7 @@ export default {
       this.next();
     },
     getData() {
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      axios.get(`${this.$BASE_API_URL}questionnaires/${this.qid}`, config).then((response) => {
+      axios.get(`questionnaires/${this.qid}`).then((response) => {
         this.questionnaireContent = response.data;
         this.questionnaire = response.data.map((element) => element.questionnaire).find(() => true);
       });

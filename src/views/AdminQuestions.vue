@@ -1,5 +1,8 @@
 <template>
   <div>
+    <b-alert v-model="showErrorAlert" variant="danger" dismissible>
+      {{ Message }}
+    </b-alert>
     <h2>Редактор вопросов</h2>
     <CreateQuestion
       v-if="isEditView"
@@ -28,6 +31,8 @@ export default {
   },
   data() {
     return {
+      showErrorAlert: false,
+      Message: '',
       isEditView: false,
       questions: [],
       question: {},
@@ -35,14 +40,11 @@ export default {
   },
   methods: {
     getData() {
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      axios.get(`${this.$BASE_API_URL}admin/questions/`, config).then((response) => {
+      axios.get('admin/questions/').then((response) => {
         this.questions = response.data;
+      }).catch((error) => {
+        this.showErrorAlert = true;
+        this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
       });
     },
     edit(qid) {
@@ -59,29 +61,27 @@ export default {
     },
     SaveQuestion() {
       this.isEditView = false;
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
       if (this.question.id) {
-        axios.put(`${this.$BASE_API_URL}admin/questions/${this.question.id}`, this.question, config).then(() => {
+        axios.put(`admin/questions/${this.question.id}`, this.question).then(() => {
           const formData = new FormData();
           formData.append('file', this.question.picture_file);
-          axios.put(`${this.$BASE_API_URL}admin/question_image/${this.question.picture_file.name}/${this.question.id}`, formData, {
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-              'Content-Type': 'multipart/form-data',
-            },
-          }).then(() => this.getData()).catch((error) => console.log(error.response.data));
+          axios.defaults.headers.put['Content-Type'] = 'multipart/form-data';
+          axios.put(
+            `admin/question_image/image-${this.question.id}/${this.question.id}`,
+            formData,
+          ).then(() => this.getData()).catch((error) => {
+            this.showErrorAlert = true;
+            this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
+          });
           this.getData();
         }).catch((error) => {
-          console.log(error.response.data);
+          this.showErrorAlert = true;
+          this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
         });
       } else {
-        axios.post(`${this.$BASE_API_URL}admin/questions/`, this.question, config).then(() => this.getData()).catch((error) => {
-          console.log(error.response.data);
+        axios.post(`${this.$BASE_API_URL}admin/questions/`, this.question).then(() => this.getData()).catch((error) => {
+          this.showErrorAlert = true;
+          this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
         });
       }
     },
@@ -96,18 +96,16 @@ export default {
       this.question.response = this.question.response.filter((element) => !(element === response));
     },
     deleteQuestion(qid) {
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      axios.delete(`${this.$BASE_API_URL}admin/questions/${qid}`, config).then(() => this.getData()).catch((error) => {
-        console.log(error.response.data);
+      axios.delete(`admin/questions/${qid}`).then(() => this.getData()).catch((error) => {
+        this.showErrorAlert = true;
+        this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
       });
     },
   },
   mounted() {
+    const jwt = localStorage.getItem('jwt_token');
+    axios.defaults.baseURL = this.$BASE_API_URL;
+    axios.defaults.headers.common.Authorization = `Bearer ${jwt}`;
     this.getData();
   },
 };

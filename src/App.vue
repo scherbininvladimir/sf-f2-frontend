@@ -2,12 +2,12 @@
   <div id="app" class="container">
     <div id="nav">
       <router-link to="/">Главная</router-link> |
-      <router-link to="/quser">Личный кабинет пользователя</router-link> |
+      <router-link to="/quser">Личный кабинет пользователя</router-link>
       <span v-if="isStaff">
-        <router-link  to="/qmanager">Управление опросами</router-link> |
+        | <router-link  to="/qmanager">Управление опросами</router-link>
       </span>
       <span v-if="isLogin">
-        <a href="" v-on:click="logout">Выход</a>
+        | <a href="" v-on:click="logout">Выход</a>
       </span>
     </div>
     <p v-if="isLogin">Здравствуйте, {{ first_name }}!</p>
@@ -56,7 +56,7 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* text-align: center; */
+  text-align: center;
   color: #2c3e50;
 }
 

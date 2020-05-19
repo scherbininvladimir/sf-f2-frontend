@@ -1,15 +1,30 @@
 <template>
  <div>
-   <form class="login" @submit.prevent="onSubmit">
-     <h1>Вход</h1>
-     <label>Имя пользователя </label>
-     <input required v-model="username" type="text" placeholder="Логин"/>
-     <br>
-     <label>Пароль </label>
-     <input required v-model="password" type="password" placeholder="Пароль"/>
-     <br>
-     <button type="submit">Login</button>
-   </form>
+   <b-alert v-model="showErrorAlert" variant="danger" dismissible>
+    {{ Message }}
+   </b-alert>
+    <h1>Вход в систему</h1>
+    <b-form @submit.prevent="onSubmit">
+      <b-form-row class="d-flex justify-content-center align-items-center">
+
+        <b-form-group label="Имя пользователя:">
+          <b-input required v-model="username" type="text" placeholder="Логин"/>
+        </b-form-group>
+
+      </b-form-row>
+      <b-form-row class="d-flex justify-content-center align-items-center">
+
+        <b-form-group label="Пароль:">
+          <b-input required v-model="password" type="password" placeholder="Пароль"/>
+        </b-form-group>
+
+      </b-form-row>
+      <b-form-row class="d-flex justify-content-center align-items-center">
+
+        <b-button variant="primary" type="submit">Войти</b-button>
+
+      </b-form-row>
+    </b-form>
  </div>
 </template>
 
@@ -19,6 +34,8 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      showErrorAlert: false,
+      Message: '',
       username: '',
       password: '',
     };
@@ -29,12 +46,7 @@ export default {
         username: this.username,
         password: this.password,
       };
-      const config = {
-        headers: {
-          'X-CSRFToken': this.$cookies.get('csrftoken'),
-        },
-      };
-      axios.post(`${this.$BASE_API_URL}token/`, requestData, config)
+      axios.post('token/', requestData)
         .then((response) => {
           localStorage.setItem('jwt_token', response.data.access);
           localStorage.setItem('jwt_refresh_token', response.data.refresh);
@@ -50,8 +62,15 @@ export default {
           } else {
             this.$router.push('Quser');
           }
+        }).catch((error) => {
+          this.Message = error.response.data;
+          this.showErrorAlert = true;
         });
     },
+  },
+  mounted() {
+    axios.defaults.baseURL = this.$BASE_API_URL;
+    axios.defaults.headers.post['Content-CSRFToken'] = this.$cookies.get('csrftoken');
   },
 };
 </script>

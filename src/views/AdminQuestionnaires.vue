@@ -1,5 +1,8 @@
 <template>
   <div>
+   <b-alert v-model="showErrorAlert" variant="danger" dismissible>
+    {{ Message }}
+   </b-alert>
     <h2>Редактор опросников</h2>
     <CreateQuestionnaire
       v-if="isEditView"
@@ -32,6 +35,8 @@ export default {
   },
   data() {
     return {
+      showErrorAlert: false,
+      Message: '',
       isEditView: false,
       questionnaires: [],
       questions: [],
@@ -41,20 +46,23 @@ export default {
   },
   methods: {
     getData() {
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      axios.get(`${this.$BASE_API_URL}admin/questionnaires/`, config).then((response) => {
+      axios.get('admin/questionnaires/').then((response) => {
         this.questionnaires = response.data;
+      }).catch((error) => {
+        this.showErrorAlert = true;
+        this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
       });
-      axios.get(`${this.$BASE_API_URL}admin/questions/`, config).then((response) => {
+      axios.get('admin/questions/').then((response) => {
         this.questions = response.data;
+      }).catch((error) => {
+        this.showErrorAlert = true;
+        this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
       });
-      axios.get(`${this.$BASE_API_URL}admin/users/`, config).then((response) => {
+      axios.get('admin/users/').then((response) => {
         this.users = response.data;
+      }).catch((error) => {
+        this.showErrorAlert = true;
+        this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
       });
     },
     edit(qid) {
@@ -76,20 +84,20 @@ export default {
     saveQuestionnaire() {
       this.getData();
       this.isEditView = false;
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
       if (this.questionnaire.id) {
-        axios.put(`${this.$BASE_API_URL}admin/questionnaires/${this.questionnaire.id}`, this.questionnaire, config).then(
+        axios.put(`admin/questionnaires/${this.questionnaire.id}`, this.questionnaire).then(
           () => this.getData(),
-        ).catch((error) => { console.log(error.response.data); });
+        ).catch((error) => {
+          this.showErrorAlert = true;
+          this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
+        });
       } else {
-        axios.post(`${this.$BASE_API_URL}admin/questionnaires/`, this.questionnaire, config).then(
+        axios.post('admin/questionnaires/', this.questionnaire).then(
           () => this.getData(),
-        ).catch((error) => { alert(error); });
+        ).catch((error) => {
+          this.showErrorAlert = true;
+          this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
+        });
       }
     },
     cancel() {
@@ -108,18 +116,16 @@ export default {
       );
     },
     deleteQuestionnaire(qid) {
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      axios.delete(`${this.$BASE_API_URL}admin/questionnaires/${qid}`, config).then(() => this.getData()).catch((error) => {
-        console.log(error.response.data);
+      axios.delete(`admin/questionnaires/${qid}`).then(() => this.getData()).catch((error) => {
+        this.showErrorAlert = true;
+        this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
       });
     },
   },
   mounted() {
+    const jwt = localStorage.getItem('jwt_token');
+    axios.defaults.baseURL = this.$BASE_API_URL;
+    axios.defaults.headers.common.Authorization = `Bearer ${jwt}`;
     this.getData();
   },
 };

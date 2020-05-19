@@ -1,5 +1,8 @@
 <template>
   <div>
+   <b-alert v-model="showErrorAlert" variant="danger" dismissible>
+    {{ Message }}
+   </b-alert>
     <div v-if="!isDetail">
       <h2>Общая информация</h2>
       <table class="table table-bordered table-sm">
@@ -28,11 +31,11 @@
       </table>
     </div>
     <div v-if="isDetail">
-      <button v-on:click="togleView()">
-        Назад
-      </button>
       <h2>Опросник: {{detailStatus.q_title}}</h2>
       <h2>Сотрудник: {{detailStatus.user_last_name}}</h2>
+      <b-button variant="link" v-on:click="togleView()">
+        Назад
+      </b-button>
       <table class="table table-bordered table-sm">
         <th>Вопрос</th>
         <th>Варианты ответа</th>
@@ -63,6 +66,9 @@
           <td>{{r.questionnaire_content.answer_weight}}</td>
         </tr>
       </table>
+      <b-button variant="link" v-on:click="togleView()">
+        Назад
+      </b-button>
     </div>
   </div>
 </template>
@@ -74,6 +80,8 @@ export default {
   name: 'Status',
   data() {
     return {
+      showErrorAlert: false,
+      Message: '',
       isDetail: false,
       detailStatus: {
         results: [],
@@ -85,6 +93,9 @@ export default {
     };
   },
   mounted() {
+    const jwt = localStorage.getItem('jwt_token');
+    axios.defaults.baseURL = this.$BASE_API_URL;
+    axios.defaults.headers.common.Authorization = `Bearer ${jwt}`;
     this.getData();
   },
   methods: {
@@ -93,13 +104,7 @@ export default {
         this.isDetail = false;
       } else {
         this.isDetail = true;
-        const jwt = localStorage.getItem('jwt_token');
-        const config = {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        };
-        axios.get(`${this.$BASE_API_URL}admin/stat/${uid}/${qid}`, config).then((response) => {
+        axios.get(`admin/stat/${uid}/${qid}`).then((response) => {
           this.detailStatus.results = response.data;
           this.detailStatus.user_last_name = response.data.find(
             (element) => element.user.last_name,
@@ -107,18 +112,18 @@ export default {
           this.detailStatus.q_title = response.data.find(
             (element) => element.questionnaire_content.questionnaire.title,
           ).questionnaire_content.questionnaire.title;
+        }).catch((error) => {
+          this.showErrorAlert = true;
+          this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
         });
       }
     },
     getData() {
-      const jwt = localStorage.getItem('jwt_token');
-      const config = {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      axios.get(`${this.$BASE_API_URL}admin/stat/`, config).then((response) => {
+      axios.get('admin/stat/').then((response) => {
         this.status = response.data;
+      }).catch((error) => {
+        this.showErrorAlert = true;
+        this.Message = `Ошибка соединения с сервером: ${error.response.data}`;
       });
     },
   },
