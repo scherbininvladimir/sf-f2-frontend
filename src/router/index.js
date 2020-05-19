@@ -68,7 +68,7 @@ router.beforeEach((to, from, next) => {
     axios.post(`${router.app.$BASE_API_URL}verify/`, { token: `${jwt}` }).then(() => {
       next();
     }).catch(() => {
-      axios.post(`${router.$BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
+      axios.post(`${router.app.$BASE_API_URL}refresh/`, { refresh: `${jwtRefresh}` }).then((response) => {
         Vue.$cookies.set('jwt_token', response.data.access);
         next();
       }).catch(() => {
